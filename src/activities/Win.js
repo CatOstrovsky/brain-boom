@@ -7,8 +7,12 @@ import {
   TouchableOpacity,
   AsyncStorage
 } from 'react-native';
-import Levels from '../const/levels'
+
 import LevelStorage from '../controllers/LevelStorage'
+import Levels from '../const/levels'
+import ReactNative from 'react-native' 
+import { connect } from 'react-redux'
+import * as actions from '../actions'
 
 class Win extends Component {
 
@@ -38,7 +42,38 @@ class Win extends Component {
 
     LevelStorage.updateLevel(currentLevel-1, { complete: 1, stars: stars });
     LevelStorage.updateLevel(currentLevel, { canplay: 1 });
+
+    this.fetchStore();
+
   }
+
+  fetchStore() {
+
+    let ids = [];
+    for (var i = Levels.length - 1; i >= 0; i--)
+      ids.push(i);
+
+    let stores = LevelStorage.getLevels(ids)
+    .then((store) => {
+      store.map((result, i, store) => {
+          let key = store[i][0],
+          value = store[i][1];
+          if(value) {
+            for(let id of ids) {
+              if(LevelStorage.getKey(id) == key) {
+                try{
+                  value = JSON.parse(value);
+                  Levels[id] = Object.assign(Levels[id], value);
+                }catch(e){}
+              }
+            }
+         }
+        })
+
+        this.props.updateStorage(Levels)
+    })
+  }
+
 
   render() {
 
@@ -89,4 +124,10 @@ const styles = StyleSheet.create({
 });
 
 
-export default Win;
+const stateProps = state => {
+  return {
+    levels: state.levels
+  };
+};
+
+export default connect(stateProps, actions)(Win);

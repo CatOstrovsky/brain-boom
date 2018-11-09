@@ -12,8 +12,12 @@ import {
 } from 'react-native';
 import Star from '../../assets/images/star.png'
 import Finish from '../../assets/images/finish.png'
+
 import LevelStorage from '../../controllers/LevelStorage'
 import Levels from '../../const/levels'
+import ReactNative from 'react-native' 
+import { connect } from 'react-redux'
+import * as actions from '../../actions'
 
 const {width, height} = Dimensions.get('window');
 
@@ -21,23 +25,18 @@ class List extends Component {
 
 	constructor(props) {
 		super(props);
-
-		this.state = {levels: []};
-		this.syncLevels();
+		this.fetchStore()
 	}
 
-	componentWillReceiveProps(props) {
-		this.syncLevels();
-	}
+	fetchStore() {
 
-	syncLevels() {
 		let ids = [];
 		for (var i = Levels.length - 1; i >= 0; i--)
 			ids.push(i);
 
-		LevelStorage.getLevels(ids)
-		.then(stores => {
-			stores.map((result, i, store) => {
+		let stores = LevelStorage.getLevels(ids)
+		.then((store) => {
+			store.map((result, i, store) => {
 		      let key = store[i][0],
 		      value = store[i][1];
 		      if(value) {
@@ -50,16 +49,18 @@ class List extends Component {
 			      	}
 			      }
 			   }
-		    });
-			this.setState({levels: Levels});
-		});
+		    })
+
+		    this.props.updateStorage(Levels)
+		})
 	}
 
 	render() {
 		const { navigate } = this.props.navigation;
 
 		let LevelsList = [];
-		for( let level of this.state.levels) {
+
+		for( let level of this.props.levels) {
 			let stars = [];
 			for (var i = level.stars - 1; i >= 0; i--)
 				stars.push(<Image key={i} source={Star} style={styles.star}/>)
@@ -74,24 +75,24 @@ class List extends Component {
 				<TouchableOpacity onPress={()=>{
 					if(level.canplay) navigate('Game', {level: level} ) 
 				}} key={level.num}>
-			<View style={levelStyles}>
-			{finish}
-			<Text style={styles.textLevel}>{level.num}</Text>
-			<View style={styles.starsWrapper}>
-			{stars}
-			</View>
-			</View>
-			</TouchableOpacity>
+					<View style={levelStyles}>
+						{finish}
+						<Text style={styles.textLevel}>{level.num}</Text>
+						<View style={styles.starsWrapper}>
+							{stars}
+						</View>
+					</View>
+				</TouchableOpacity>
 			)
 		}
 
 		return (
 			<ScrollView>
-			<View  style={styles.container}>
-			{LevelsList}
-			</View>
+				<View  style={styles.container}>
+					{LevelsList}
+				</View>
 			</ScrollView>
-			);
+		);
 	}
 }
 
@@ -159,4 +160,10 @@ const styles = StyleSheet.create({
 });
 
 
-export default List;
+const stateProps = state => {
+  return {
+  	levels: state.levels
+  };
+};
+
+export default connect(stateProps, actions)(List);

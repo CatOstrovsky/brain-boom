@@ -11,12 +11,7 @@ import {
 import Settings from '../components/Settings'
 import LevelList from '../components/Level/List'
 
-type Props = {};
 export default class App extends Component<Props> {
-  
-  componentWillReceiveProps(props) {
-    alert("ok")
-  }
 
   render() {
   	const {width, height} = Dimensions.get('window');
@@ -35,6 +30,7 @@ export default class App extends Component<Props> {
     );
   }
 }
+
 
 const styles = StyleSheet.create({
   container: {
